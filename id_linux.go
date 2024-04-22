@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package machineid
@@ -9,6 +10,9 @@ const (
 	// Some systems (like Fedora 20) only know this path.
 	// Sometimes it's the other way round.
 	dbusPathEtc = "/etc/machine-id"
+
+	// Command to attempt to read docker container ID using hostname
+	dockerPath = "/etc/hostname"
 )
 
 // machineID returns the uuid specified at `/var/lib/dbus/machine-id` or `/etc/machine-id`.
@@ -21,7 +25,12 @@ func machineID() (string, error) {
 		id, err = readFile(dbusPathEtc)
 	}
 	if err != nil {
+		id, err = readFile(dockerPath)
+	}
+
+	if err != nil {
 		return "", err
 	}
+
 	return trim(string(id)), nil
 }
